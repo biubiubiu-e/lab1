@@ -1,5 +1,6 @@
 package polynomialCalculation;
 
+//B1-3
 public class Data extends node {
 	
 	@Override

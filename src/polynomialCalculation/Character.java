@@ -1,5 +1,6 @@
 package polynomialCalculation;
 
+//B1-2
 public class Character extends Data {
 	
 	private String word;
