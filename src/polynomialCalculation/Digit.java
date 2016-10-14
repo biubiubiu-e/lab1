@@ -1,6 +1,7 @@
 package polynomialCalculation;
 
-public class Digit extends Data {
+//B1-4
+ class Digit extends Data {
 	
 	private Integer d;
 	
