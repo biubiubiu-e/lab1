@@ -1,5 +1,6 @@
 package polynomialCalculation;
 
+//C4-4
 public class Digit extends Data {
 	
 	private Integer d;
