@@ -1,11 +1,21 @@
 package polynomialCalculation;
 
-public class HandlerExit extends Handler{
+/**
+ * @author Administrator
+ *
+ */
+public class HandlerExit extends Handler {
 
-	public HandlerExit(Calculator c) {
+	/**
+	 * @param c
+	 */
+	public HandlerExit(final Calculator c) {
 		super(c);
 	}
 
+	/* (non-Javadoc)
+	 * @see polynomialCalculation.Handler#isExit()
+	 */
 	@Override
 	public boolean isExit() 
 	{

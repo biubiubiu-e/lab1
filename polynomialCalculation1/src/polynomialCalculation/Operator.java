@@ -2,17 +2,47 @@ package polynomialCalculation;
 
 import java.util.ArrayList;
 
+/**
+ * @author Administrator
+ *
+ */
 public class Operator extends node {
 	
+	/**
+	 * 
+	 */
 	private char ch;
+	/**
+	 * 
+	 */
 	public ArrayList<node> son = new ArrayList<node>();
 	
-	public Operator(char ch) { this.ch = ch ; }
+	/**
+	 * @param ch
+	 */
+	public Operator(final char ch) { 
+	    this.ch = ch ; 
+	    }
 	
-	public void set(char ch){ this.ch = ch ; }
-	public char getContent(){ return ch; }
-	public void addSon(node n){ son.add(n); }
+	/**
+	 * @param ch
+	 */
+	public final void set(final char ch) { 
+	    this.ch = ch ; }
+	/**
+	 * @return ch
+	 */
+	public char getContent() { 
+	    return ch; }
+	/**
+	 * @param n
+	 */
+	public void addSon(final node n) { 
+	    son.add(n); }
 	
+	/* (non-Javadoc)
+	 * @see polynomialCalculation.node#get()
+	 */
 	@Override
 	public char[] get() {
 		char[] ch = new char[1];
@@ -20,10 +50,18 @@ public class Operator extends node {
 		return ch ;
 	}
 
+	/* (non-Javadoc)
+	 * @see polynomialCalculation.node#getLeft()
+	 */
 	@Override
-	public node getLeft() { return left; }
+	public node getLeft() { 
+	    return left; }
 
+	/* (non-Javadoc)
+	 * @see polynomialCalculation.node#getRight()
+	 */
 	@Override
-	public node getRight() { return right; }
+	public node getRight() { 
+	    return right; }
 
 }
