@@ -129,20 +129,20 @@ public class Calculator  {
      */
     public StringBuffer PreTravel(final node n)
      {
-        StringBuffer sb  = new StringBuffer();
+        StringBuffer fuck  = new StringBuffer();
         if(n !=null)
          {
-            if((n.left  ==null && n.right !=null) || (n.left !=null && n.right  ==null)) {
+            if(  (n.left !=null && n.right  ==null) || (n.left  ==null && n.right !=null)) {
                 illegal  = true ;
             }
             
             //判断当前优先级，根据优先级加括号
-            sb.append(n.get());
-            sb.append(PreTravel(n.left));
-            sb.append(PreTravel(n.right));
+            fuck.append(n.get());
+            fuck.append(PreTravel(n.left));
+            fuck.append(PreTravel(n.right));
             
         }
-        return sb;
+        return fuck;
         
     }
     
@@ -239,35 +239,39 @@ public class Calculator  {
         String temp  = new String(line) ;
         
         //找到有括号外第一个加号
-        for(int i  = 0 ; i < line.length ; i ++  )
+        int len = line.length;
+        for(int i  = 0 ; i < len ; i ++  )
          {
             if(line[i]  ==' ')
                 continue ;
             if(line[i]  =='(')
-                bracketCount  ++ ;
-            else if(line[i]  ==')')
-                bracketCount  --;
+                bracketCount  ++ ; 
+            
             else if(line[i]  =='+')
-             {
-                if(bracketCount  ==0)
-                 {
-                    splitPos  = i ;
-                    break ;
-                }
-            }
+            {
+               if(bracketCount  ==0)
+                {
+                   splitPos  = i ;
+                   break ;
+               }
+           }
+            
             else if(line[i] >='0' && line[i] <= '9')
              {
                 numCount  ++  ;
             }
+            else if(line[i]  ==')')
+                bracketCount  --;
             else if(line[i] >='a' && line[i] <= 'z')
              {
                 chCount  ++  ;
             }
         }
         //若括号外没哟加号，则找到有括号外第一个乘号
+        int lineLen = line.length;
         if(splitPos  ==0 && line[0] !='+')
          {
-            for(int i  = 0 ; i < line.length ; i ++  )
+            for(int i  = 0 ; i < lineLen ; i ++  )
              {
                 if(line[i]  ==' ')
                     continue ;
@@ -283,8 +287,7 @@ public class Calculator  {
                         break ;
                     }
                 }
-                else
-                    continue ;
+                else continue ;
             }
         }
         //如果该串是变量串
@@ -333,6 +336,7 @@ public class Calculator  {
         return current;
     }
     
+    
     //预处理表达式字符数组
     /**
      * @param line
@@ -351,22 +355,18 @@ public class Calculator  {
             if(line[i]  ==' ')
              {
                 if((line[i -1] >='0' && line[i -1] <= '9') && (line[i + 1] >='a' && line[i + 1] <= 'z'))
+                {
+                    line[i] ='*';
+                } 
+                else if( ( line[i + 1] <= 'z' && line[i + 1] >='a') && (line[i -1] >='a' && line[i -1] <= 'z') )
                  {
                     line[i] ='*';
-                }
-                else if((line[i -1] >='a' && line[i -1] <= 'z') && (line[i + 1] >='0' && line[i + 1] <= '9'))
-                 {
-                    line[i] ='*';
-                }
-                else if((line[i -1] >='a' && line[i -1] <= 'z') && (line[i + 1] >='a' && line[i + 1] <= 'z'))
-                 {
-                    line[i] ='*';
-                }
+                } 
                 else
                     continue;
             }
             else if((line[i] >='a' && line[i] <= 'z') && (line[i -1] >='0' && line[i -1] <= '9'))
-             {
+            {
                 process.add('*');
             }
             process.add(line[i]);
@@ -649,9 +649,10 @@ public class Calculator  {
              {
                 if(compareMono((Operator) savedPoly.son.get(i),(Operator) savedPoly.son.get(j)))
                  {
-                    int factor  = ((Digit) ((Operator) savedPoly.son.get(i)).son.get(0)).getContent();
-                    factor  += ((Digit) ((Operator) savedPoly.son.get(j)).son.get(0)).getContent();
-                    ((Digit) ((Operator) savedPoly.son.get(i)).son.get(0)).set(factor);
+                    Digit temp = ( (Digit) ( (Operator) savedPoly.son.get(i)).son.get(0) );
+                    int factor  = temp.getContent();
+                    factor  += temp.getContent();
+                    temp.set(factor);
                     savedPoly.son.remove(j);
                     j --;
                 }
@@ -808,7 +809,9 @@ public class Calculator  {
     }
     //
     
-    
+    private int myGetContent(node n) {
+        return ((Digit) (((Operator) n).son.get(0))).getContent();
+    }
     //求导指令
     /**
      * @param cmd
@@ -860,7 +863,7 @@ public class Calculator  {
             for( int i =0 ; i < savedPoly.son.size() ; i ++  )
              {
                 node n  = savedPoly.son.get(i);
-                int factor  = ((Digit) (((Operator) n).son.get(0))).getContent();
+                int factor  = myGetContent(n);
                 int index  = ((Character) (((Operator) n).son.get(pos))).getIndex();
                 factor *= index;
                 ((Character) (((Operator) n).son.get(pos))).setIndex(index -1);
