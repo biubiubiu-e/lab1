@@ -6,7 +6,9 @@ public class Data extends node {
 	public node getLeft() { return left; }
 
 	@Override
-	public node getRight() { return right; }
+	public node getRight() {
+	    return right; 
+	}
 
 	
 }

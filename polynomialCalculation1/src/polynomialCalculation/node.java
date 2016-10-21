@@ -1,6 +1,6 @@
 package polynomialCalculation;
 
-public class node{	
+public class node {	
 	
 	protected node left;
 	protected node right;	

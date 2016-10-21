@@ -14,7 +14,9 @@ public class Character extends Data {
 		index = 1;
 	}
 	
-	public String getContent(){ return word; }
+	public String getContent() { 
+	    return word; 
+	}
 	public int getIndex(){ return index; }
 	
 	public void set(String word){ this.word = new String(word); }
