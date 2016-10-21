@@ -212,7 +212,7 @@ public class Calculator  {
                 if(s.substring(i, i + 1).equals("("))
                     bracketCount  ++ ;
                 else if(s.substring(i, i + 1).equals(")"))
-                    bracketCount  --;
+                    bracketCount--;
                 
                 if(bracketCount  ==0)
                  {
@@ -234,7 +234,7 @@ public class Calculator  {
      {
         
         node current  = null;
-        int bracketCount  = 0 , numCount  = 0 , chCount  = 0;
+        int bracketCount  = 0 , numCount  = 0, chCount  = 0;
         int splitPos  = 0;
         String temp  = new String(line) ;
         
@@ -245,7 +245,7 @@ public class Calculator  {
             if(line[i]  ==' ')
                 continue ;
             if(line[i]  =='(')
-                bracketCount  ++ ; 
+                bracketCount++; 
             
             else if(line[i]  =='+')
             {
@@ -261,7 +261,7 @@ public class Calculator  {
                 numCount  ++  ;
             }
             else if(line[i]  ==')')
-                bracketCount  --;
+                bracketCount--;
             else if(line[i] >='a' && line[i] <= 'z')
              {
                 chCount  ++  ;
@@ -286,7 +286,7 @@ public class Calculator  {
                     }
                 }
                 else if(line[i]  ==')')
-                    bracketCount  --;
+                    bracketCount--;
                 else continue ;
             }
         }
@@ -762,7 +762,7 @@ public class Calculator  {
             for( Integer k : pair.keySet() )
              {
                 Character point  = (Character) ((Operator) n).son.get(k);
-                for( int i  = 0 ; i < point.getIndex() ; i ++  )
+                for( int i = 0; i < point.getIndex() ; i++ )
                  {
                     factor *= (int) pair.get(k);
                 }
