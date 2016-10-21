@@ -127,7 +127,7 @@ public class Calculator  {
      * @param n
      * @return *
      */
-    public StringBuffer PreTravel(final node n)
+    public StringBuffer setPreTravel(final node n)
      {
         StringBuffer fuck  = new StringBuffer();
         if(n !=null)
@@ -138,8 +138,8 @@ public class Calculator  {
             
             //判断当前优先级，根据优先级加括号
             fuck.append(n.get());
-            fuck.append(PreTravel(n.left));
-            fuck.append(PreTravel(n.right));
+            fuck.append(setPreTravel(n.left));
+            fuck.append(setPreTravel(n.right));
             
         }
         return fuck;
@@ -230,7 +230,7 @@ public class Calculator  {
      * @param line
      * @return *
      */
-    private node ContributeTree(char[] line) 
+    private node setContributeTree(char[] line) 
      {
         
         node current  = null;
@@ -270,15 +270,13 @@ public class Calculator  {
         //若括号外没哟加号，则找到有括号外第一个乘号
         int lineLen = line.length;
         if(splitPos  ==0 && line[0] !='+')
-         {
+        {
             for(int i  = 0 ; i < lineLen ; i ++  )
              {
                 if(line[i]  ==' ')
                     continue ;
                 if(line[i]  =='(')
                     bracketCount  ++ ;
-                else if(line[i]  ==')')
-                    bracketCount  --;
                 else if(line[i]  =='*')
                  {
                     if(bracketCount  ==0)
@@ -287,6 +285,8 @@ public class Calculator  {
                         break ;
                     }
                 }
+                else if(line[i]  ==')')
+                    bracketCount  --;
                 else continue ;
             }
         }
@@ -321,12 +321,12 @@ public class Calculator  {
             if(left.equals(""))
                 current.left  = null;
             else
-                current.left  = ContributeTree(debracket(left).toCharArray());
+                current.left  = setContributeTree(debracket(left).toCharArray());
             
             if(right.equals(""))
                 current.right  = null;
             else
-                current.right  = ContributeTree(debracket(right).toCharArray());
+                current.right  = setContributeTree(debracket(right).toCharArray());
             
             if((current.left  ==null && current.right !=null) || (current.left !=null && current.right  ==null)) {
                 illegal  = true;
@@ -432,7 +432,7 @@ public class Calculator  {
         }
         
         if(!illegal) {
-            root  = ContributeTree(line);
+            root  = setContributeTree(line);
         }
 
     }   
@@ -664,7 +664,7 @@ public class Calculator  {
     /**
      * @param input
      */
-    private void Save(final char[] input) 
+    private void setSave(final char[] input) 
      {
         
         //初始化两棵树
@@ -911,7 +911,7 @@ public class Calculator  {
             //有待用handler格式化代码
             if(input[0] !='!')
              {
-                Save(input);
+                setSave(input);
             }
             else
              {
