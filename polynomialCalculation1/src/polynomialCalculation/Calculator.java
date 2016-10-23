@@ -4,842 +4,961 @@ package polynomialCalculation;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
+/** * 
+ * @author  ä½œè€… E -mail: 
+ * @date åˆ›å»ºæ—¶é—´ï¼š$ {date} $ {time} 
+ * @version 1.0 
+ * @parameter  * 
+ * @since  * 
+ * @return *  
+ */
+public class Calculator  {
+    /**
+     * 
+     */
+    private static final int TEN = 10;
+    /**
+     * 
+     */
+    private static final int FOUR = 4;
+    /**
+     * 
+     */
+    private static final int FIVE = 5;
+    /**
+     * 
+     */
+    private static final int NINE = 9;
+    /**
+     * 
+     */
+    private node root;
+    /**
+     * 
+     */
+    private Operator savedPoly ;
+    /**
+     * 
+     */
+    private HashMap<String,Handler >  handlers  = new HashMap<String,Handler > ();
+    /**
+     * 
+     */
+    private ArrayList<String >  variable  = new ArrayList<String > ();
+    /**
+     * 
+     */
+    private boolean illegal;
+    
+    //æ„é€ å‡½æ•°
+    /**
+     * 
+     */
+    public Calculator()
+     {
+        handlers.put("!simplify", new HandlerSimplify(this));
+        handlers.put("!d/d", new HandlerDerivation(this));
+        handlers.put("!exit",new HandlerExit(this));
+        root  = null;
+        savedPoly  = new Operator('+');
+    }
 
-public class Calculator {
-	
-	private node root;
-	private Operator savedPoly ;
-	private HashMap<String,Handler> handlers = new HashMap<String,Handler>();
-	private ArrayList<String> variable = new ArrayList<String>();
-	private boolean illegal;
-	
-	//¹¹Ôìº¯Êı
-	public Calculator()
-	{
-		handlers.put("!simplify", new HandlerSimplify(this));
-		handlers.put("!d/d", new HandlerDerivation(this));
-		handlers.put("!exit",new HandlerExit(this));
-		root = null;
-		savedPoly = new Operator('+');
-	}
+    //å¤åˆ¶æ ‘
+    /**
+     * @param root
+     * @return * *
+     */
+    public node copy(final node root)
+     {
+        node current  = null;
+        if(root  != null)
+         {
+            if(root instanceof Operator)
+                current  = new Operator(((Operator)  root).getContent());
+            else if(root instanceof Digit)
+                current  = new Digit(((Digit)  root).getContent());
+            else if(root instanceof Character)
+                current  = new Character(((Character)  root).getContent());
+                
+            current.left  = copy(root.left);
+            current.right  = copy(root.right);
+        }
+        return current;
+    }
+    
+    //æ˜¾ç¤ºä¿¡æ¯
+    /**
+     * 
+     */
+    public void showPrompt()
+     {
+        System.out.println();
+        System.out.println("è¯·è¾“å…¥æŒ‡ä»¤æˆ–æ–°çš„è¡¨è¾¾å¼ï¼š");
+        System.out.println("æŒ‡ä»¤æœ‰: !simplify !d/d !exit");
+        System.out.println();
+    }
+    
+    //ä¸­åºéå†è¡¨è¾¾å¼æ ‘
+    /**
+     * @param n
+     * @return *
+     */
+    public StringBuffer midTravel(final node n)
+     {
+        StringBuffer sb  = new StringBuffer();
+        if(n !=null)
+         {
+            if((n.left  ==null && n.right !=null) || (n.left !=null && n.right  ==null)) {
+                illegal  = true ;
+            }
+            
+            //åˆ¤æ–­å½“å‰ä¼˜å…ˆçº§ï¼Œæ ¹æ®ä¼˜å…ˆçº§åŠ æ‹¬å·
+            sb.append(midTravel(n.left));
+            sb.append(n.get());
+            sb.append(midTravel(n.right));
+            
+        }
+        return sb;
+        
+    }
+    
+    //å…ˆåºéå†è¡¨è¾¾å¼æ ‘
+    /**
+     * @param n
+     * @return *
+     */
+    public StringBuffer setPreTravel(final node n)
+     {
+        StringBuffer fuck  = new StringBuffer();
+        if(n !=null)
+         {
+            if(  (n.left !=null && n.right  ==null) || (n.left  ==null && n.right !=null)) {
+                illegal  = true ;
+            }
+            
+            //åˆ¤æ–­å½“å‰ä¼˜å…ˆçº§ï¼Œæ ¹æ®ä¼˜å…ˆçº§åŠ æ‹¬å·
+            fuck.append(n.get());
+            fuck.append(setPreTravel(n.left));
+            fuck.append(setPreTravel(n.right));
+            
+        }
+        return fuck;
+        
+    }
+    
+    //æ‰“å°æ ‘ç»“æ„å¤šé¡¹å¼
+    /**
+     * @param n
+     */
+    public void print(final Operator n)
+     {
+        if(n.getContent()  =='+')
+         {
+            int count  = 0;
+            for( node k : n.son )
+             {
+                if(count !=0)
+                    System.out.print(" + ");
+                print((Operator)  k);
+                count  ++ ; 
+            }
+        }
+        else if(n.getContent()  =='*')
+         {
+            int count  = 0,factor  = ((Digit)  (n.son.get(0))).getContent();
+            for(node k : n.son)
+             {
+                if(k instanceof Digit)
+                 {
+                    if(factor  ==1)
+                        continue ;
+                    else if(factor  == -1)
+                        System.out.print(" -");
+                    else {
+                        System.out.print(factor);
+                    }
+                }
+                else if(k instanceof Character)
+                 {
+                    if(((Character)  k).getIndex() > 0)
+                     {
+                        //åˆ¤æ–­æ˜¯å¦æ‰“å°ä¹˜å·
+                        if(count !=0)
+                            System.out.print("*");
+                        else if(factor !=1 && factor != -1)
+                            System.out.print("*");
+                            
+                        System.out.print(((Character)  k).getContent());
+                        if(((Character)  k).getIndex() > 1)
+                            System.out.print("^" + ((Character)  k).getIndex());
+                        count  ++ ;
+                    }
+                }
+            }
+        }
+    }
+    
+    //å»æ‰æ‹¬èµ·æ•´ä¸ªè¡¨è¾¾å¼çš„æ‹¬å·
+    /**
+     * @param s
+     * @return *
+     */
+    public String debracket(String s)
+     {
+        int bracketCount  = 1;
+        if(s.substring(0, 1).equals("("))
+            for(int i  = 1 ; i < s.length() ; i ++  )
+             {
+                if(s.substring(i, i + 1).equals("("))
+                    bracketCount  ++ ;
+                else if(s.substring(i, i + 1).equals(")"))
+                    bracketCount--;
+                
+                if(bracketCount  ==0)
+                 {
+                    if(i  ==s.length()  - 1)
+                        s  = s.substring(1, s.length() -1);
+                    else
+                        break;
+                }
+            }
+        return s;
+    }
 
-	//¸´ÖÆÊ÷
-	public node copy(node root)
-	{
-		node current = null;
-		if(root!=null)
-		{
-			if(root instanceof Operator)
-				current = new Operator(((Operator) root).getContent());
-			else if(root instanceof Digit)
-				current = new Digit(((Digit) root).getContent());
-			else if(root instanceof Character)
-				current = new Character(((Character) root).getContent());
-				
-			current.left = copy(root.left);
-			current.right = copy(root.right);
-		}
-		return current;
-	}
-	
-	//ÏÔÊ¾ĞÅÏ¢
-	public void showPrompt()
-	{
-		System.out.println();
-		System.out.println("ÇëÊäÈëÖ¸Áî»òĞÂµÄ±í´ïÊ½£º");
-		System.out.println("Ö¸ÁîÓĞ: !simplify !d/d !exit");
-		System.out.println();
-	}
-	
-	//ÖĞĞò±éÀú±í´ïÊ½Ê÷
-	public StringBuffer midTravel(node n)
-	{
-		StringBuffer sb = new StringBuffer();
-		if(n!=null)
-		{
-			if((n.left==null&&n.right!=null)||(n.left!=null&&n.right==null)){
-				illegal = true ;
-			}
-			
-			//ÅĞ¶Ïµ±Ç°ÓÅÏÈ¼¶£¬¸ù¾İÓÅÏÈ¼¶¼ÓÀ¨ºÅ
-			sb.append(midTravel(n.left));
-			sb.append(n.get());
-			sb.append(midTravel(n.right));
-			
-		}
-		return sb;
-		
-	}
-	
-	//ÏÈĞò±éÀú±í´ïÊ½Ê÷
-	public StringBuffer PreTravel(node n)
-	{
-		StringBuffer sb = new StringBuffer();
-		if(n!=null)
-		{
-			if((n.left==null&&n.right!=null)||(n.left!=null&&n.right==null)){
-				illegal = true ;
-			}
-			
-			//ÅĞ¶Ïµ±Ç°ÓÅÏÈ¼¶£¬¸ù¾İÓÅÏÈ¼¶¼ÓÀ¨ºÅ
-			sb.append(n.get());
-			sb.append(PreTravel(n.left));
-			sb.append(PreTravel(n.right));
-			
-		}
-		return sb;
-		
-	}
-	
-	//´òÓ¡Ê÷½á¹¹¶àÏîÊ½
-	public void print(Operator n)
-	{
-		if(n.getContent()=='+')
-		{
-			int count = 0;
-			for( node k : n.son )
-			{
-				if(count!=0)
-					System.out.print("+");
-				print((Operator)k);
-				count ++;
-			}
-		}
-		else if(n.getContent()=='*')
-		{
-			int count = 0,factor = ((Digit)(n.son.get(0))).getContent();
-			for(node k : n.son)
-			{
-				if(k instanceof Digit)
-				{
-					if(factor==1)
-						continue ;
-					else if(factor==-1)
-						System.out.print("-");
-					else{
-						System.out.print(factor);
-					}
-				}
-				else if(k instanceof Character)
-				{
-					if(((Character) k).getIndex()>0)
-					{
-						//ÅĞ¶ÏÊÇ·ñ´òÓ¡³ËºÅ
-						if(count!=0)
-							System.out.print("*");
-						else if(factor!=1&&factor!=-1)
-							System.out.print("*");
-							
-						System.out.print(((Character) k).getContent());
-						if(((Character) k).getIndex()>1)
-							System.out.print("^"+((Character) k).getIndex());
-						count ++;
-					}
-				}
-			}
-		}
-	}
-	
-	//È¥µôÀ¨ÆğÕû¸ö±í´ïÊ½µÄÀ¨ºÅ
-	public String debracket(String s)
-	{
-		int bracketCount = 1;
-		if(s.substring(0, 1).equals("("))
-			for(int i = 1 ; i < s.length() ; i++ )
-			{
-				if(s.substring(i, i+1).equals("("))
-					bracketCount ++;
-				else if(s.substring(i, i+1).equals(")"))
-					bracketCount --;
-				
-				if(bracketCount==0)
-				{
-					if(i==s.length()-1)
-						s = s.substring(1, s.length()-1);
-					else
-						break;
-				}
-			}
-		return s;
-	}
+    //é€’å½’æ„é€ è¡¨è¾¾å¼æ ‘
+    /**
+     * @param line
+     * @return *
+     */
+    private node setContributeTree(char[] line) 
+     {
+        
+        node current  = null;
+        int bracketCount  = 0 , numCount  = 0, chCount  = 0;
+        int splitPos  = 0;
+        String temp  = new String(line) ;
+        
+        //æ‰¾åˆ°æœ‰æ‹¬å·å¤–ç¬¬ä¸€ä¸ªåŠ å·
+        int len = line.length;
+        for(int i  = 0 ; i < len ; i ++  )
+         {
+            if(line[i]  ==' ')
+                continue ;
+            if(line[i]  =='(')
+                bracketCount++; 
+            
+            else if(line[i]  =='+')
+            {
+               if(bracketCount  ==0)
+                {
+                   splitPos  = i ;
+                   break ;
+               }
+           }
+            
+            else if(line[i] >='0' && line[i] <= '9')
+             {
+                numCount  ++  ;
+            }
+            else if(line[i]  ==')')
+                bracketCount--;
+            else if(line[i] >='a' && line[i] <= 'z')
+             {
+                chCount  ++  ;
+            }
+        }
+        //è‹¥æ‹¬å·å¤–æ²¡å“ŸåŠ å·ï¼Œåˆ™æ‰¾åˆ°æœ‰æ‹¬å·å¤–ç¬¬ä¸€ä¸ªä¹˜å·
+        int lineLen = line.length;
+        if(splitPos  ==0 && line[0] !='+')
+        {
+            for(int i  = 0 ; i < lineLen ; i ++  )
+             {
+                if(line[i]  ==' ')
+                    continue ;
+                if(line[i]  =='(')
+                    bracketCount  ++ ;
+                else if(line[i]  =='*')
+                 {
+                    if(bracketCount  ==0)
+                     {
+                        splitPos  = i ;
+                        break ;
+                    }
+                }
+                else if(line[i]  ==')')
+                    bracketCount--;
+                else continue ;
+            }
+        }
+        //å¦‚æœè¯¥ä¸²æ˜¯å˜é‡ä¸²
+        if(line.length > 0 && chCount  ==line.length)
+         {
+            current  = new Character(line);
+        }
+        //å¦‚æœè¯¥ä¸²æ˜¯æ•°å­—ä¸²
+        if(line.length > 0 && numCount  ==line.length)
+         {
+            int data  = 0 ;
+            for(int i  = 0 ; i < line.length ; i ++  )
+             {
+                data *= TEN ;
+                data  += line[i] -'0' ;
+            }
+            current  = new Digit(data);
+        }
 
-	//µİ¹é¹¹Ôì±í´ïÊ½Ê÷
-	private node ContributeTree(char[] line) 
-	{
-		
-		node current = null;
-		int bracketCount = 0 , numCount = 0 , chCount = 0;
-		int splitPos = 0;
-		String temp = new String(line) ;
-		
-		//ÕÒµ½ÓĞÀ¨ºÅÍâµÚÒ»¸ö¼ÓºÅ
-		for(int i = 0 ; i < line.length ; i++ )
-		{
-			if(line[i]==' ')
-				continue ;
-			if(line[i]=='(')
-				bracketCount ++;
-			else if(line[i]==')')
-				bracketCount --;
-			else if(line[i]=='+')
-			{
-				if(bracketCount==0)
-				{
-					splitPos = i ;
-					break ;
-				}
-			}
-			else if(line[i]>='0'&&line[i]<='9')
-			{
-				numCount ++ ;
-			}
-			else if(line[i]>='a'&&line[i]<='z')
-			{
-				chCount ++ ;
-			}
-		}
-		//ÈôÀ¨ºÅÍâÃ»Ó´¼ÓºÅ£¬ÔòÕÒµ½ÓĞÀ¨ºÅÍâµÚÒ»¸ö³ËºÅ
-		if(splitPos==0&&line[0]!='+')
-		{
-			for(int i = 0 ; i < line.length ; i++ )
-			{
-				if(line[i]==' ')
-					continue ;
-				if(line[i]=='(')
-					bracketCount ++;
-				else if(line[i]==')')
-					bracketCount --;
-				else if(line[i]=='*')
-				{
-					if(bracketCount==0)
-					{
-						splitPos = i ;
-						break ;
-					}
-				}
-				else
-					continue ;
-			}
-		}
-		//Èç¹û¸Ã´®ÊÇ±äÁ¿´®
-		if(line.length>0&&chCount==line.length)
-		{
-			current = new Character(line);
-		}
-		//Èç¹û¸Ã´®ÊÇÊı×Ö´®
-		if(line.length>0&&numCount==line.length)
-		{
-			int data = 0 ;
-			for(int i = 0 ; i < line.length ; i++ )
-			{
-				data *= 10 ;
-				data += line[i]-'0' ;
-			}
-			current = new Digit(data);
-		}
+        if(current instanceof Data)
+         {
+            current.left  = null ;
+            current.right  = null ;
+        }
+        else if(line.length !=0)
+         {       
+            String left  = temp.substring(0, splitPos);
+            String right  = temp.substring(splitPos + 1, line.length);
+            current  = new Operator(line[splitPos]);
+            
+            if(left.equals(""))
+                current.left  = null;
+            else
+                current.left  = setContributeTree(debracket(left).toCharArray());
+            
+            if(right.equals(""))
+                current.right  = null;
+            else
+                current.right  = setContributeTree(debracket(right).toCharArray());
+            
+            if((current.left  ==null && current.right !=null) || (current.left !=null && current.right  ==null)) {
+                illegal  = true;
+            }
+        }
+        
+        return current;
+    }
+    
+    
+    //é¢„å¤„ç†è¡¨è¾¾å¼å­—ç¬¦æ•°ç»„
+    /**
+     * @param line
+     * @return *
+     */
+    @SuppressWarnings("unchecked")
+    public char[] preprocess(final char[] line)
+     {
+        @SuppressWarnings("rawtypes")
+        ArrayList process  = new ArrayList();
+        if(line[0] !=' ')
+            process.add(line[0]);
+        //å¢åŠ æ•°å­— -å˜é‡ã€å˜é‡ -å˜é‡ä¹‹é—´çš„ä¹˜å·
+        for( int i =1 ; i < line.length -1 ; i ++  )
+         {
+            if(line[i]  ==' ')
+             {
+                if((line[i -1] >='0' && line[i -1] <= '9') && (line[i + 1] >='a' && line[i + 1] <= 'z'))
+                {
+                    line[i] ='*';
+                } 
+                else if( ( line[i + 1] <= 'z' && line[i + 1] >='a') && (line[i -1] >='a' && line[i -1] <= 'z') )
+                 {
+                    line[i] ='*';
+                } 
+                else
+                    continue;
+            }
+            else if((line[i] >='a' && line[i] <= 'z') && (line[i -1] >='0' && line[i -1] <= '9'))
+            {
+                process.add('*');
+            }
+            process.add(line[i]);
+        }
+        if(line[line.length -1] !=' ')
+         {
+            if((line[line.length -1] >='a' && line[line.length -1] <= 'z')
+                     && (line[line.length -2] >='0' && line[line.length -2] <= '9')) {
+                process.add('*');
+            }
+            process.add(line[line.length -1]);
+        }
+        
+        char[] changed  = new char[process.size()];
+        for( int i =0 ; i < process.size() ; i ++  )
+         {
+            changed[i]  = (char) process.get(i);
+        }
+        return changed;
+    }
+    
+    //å°†è¾“å…¥è¡¨è¾¾å¼å­˜å…¥äºŒå‰æ ‘ä¸­
+    /**
+     * @param line
+     */
+    public void toTree( char[] line )
+     {
+        
+        //é¢„å¤„ç†è¡¨è¾¾å¼
+        line  = preprocess(line);
+            
+        root  = null ;
+        int bracketCount  = 0 ;
+        
+        //æ£€æŸ¥æ‹¬å·æ•°é‡æ˜¯å¦åŒ¹é…ã€æ˜¯å¦æœ‰éæ³•å­—ç¬¦
+        for(int i  = 0 ; i < line.length ; i ++  )
+         {
+            if(line[i]  =='(')
+                bracketCount  ++  ;
+            else if(line[i]  ==')')
+             {
+                bracketCount  -- ;
+                if(bracketCount <0)
+                 {
+                    System.out.println("æ ¼å¼é”™è¯¯ï¼");
+                    illegal  = true ;
+                    break ;
+                }
+            }
+            else if(line[i] >='0' && line[i] <= '9' || line[i] >='a' && line[i] <= 'z' || line[i]  =='+' || line[i]  =='*')
+                continue ;
+            else
+             {
+                System.out.println("éæ³•å­—ç¬¦ï¼š" + line[i]);
+                illegal  = true ;
+            }
+        }
+        //æ‹¬å·æ•°é‡ä¸åŒ¹é…
+        if(bracketCount !=0)
+         {
+            System.out.println("æ‹¬å·ä¸åŒ¹é…ï¼");
+            illegal  = true ;
+        }
+        
+        if(!illegal) {
+            root  = setContributeTree(line);
+        }
 
-		if(current instanceof Data)
-		{
-			current.left = null ;
-			current.right = null ;
-		}
-		else if(line.length!=0)
-		{		
-			String left = temp.substring(0, splitPos);
-			String right = temp.substring(splitPos+1, line.length);
-			current = new Operator(line[splitPos]);
-			
-			if(left.equals(""))
-				current.left = null;
-			else
-				current.left = ContributeTree(debracket(left).toCharArray());
-			
-			if(right.equals(""))
-				current.right = null;
-			else
-				current.right = ContributeTree(debracket(right).toCharArray());
-			
-			if((current.left==null&&current.right!=null)||(current.left!=null&&current.right==null)){
-				illegal = true;
-			}
-		}
-		
-		return current;
-	}
-	
-	//Ô¤´¦Àí±í´ïÊ½×Ö·ûÊı×é
-	public char[] preprocess(char[] line)
-	{
-		ArrayList process = new ArrayList();
-		if(line[0]!=' ')
-			process.add(line[0]);
-		//Ôö¼ÓÊı×Ö-±äÁ¿¡¢±äÁ¿-±äÁ¿Ö®¼äµÄ³ËºÅ
-		for( int i=1 ; i<line.length-1 ; i++ )
-		{
-			if(line[i]==' ')
-			{
-				if((line[i-1]>='0'&&line[i-1]<='9')&&(line[i+1]>='a'&&line[i+1]<='z'))
-				{
-					line[i]='*';
-				}
-				else if((line[i-1]>='a'&&line[i-1]<='z')&&(line[i+1]>='0'&&line[i+1]<='9'))
-				{
-					line[i]='*';
-				}
-				else if((line[i-1]>='a'&&line[i-1]<='z')&&(line[i+1]>='a'&&line[i+1]<='z'))
-				{
-					line[i]='*';
-				}
-				else
-					continue;
-			}
-			else if((line[i]>='a'&&line[i]<='z')&&(line[i-1]>='0'&&line[i-1]<='9'))
-			{
-				process.add('*');
-			}
-			process.add(line[i]);
-		}
-		if(line[line.length-1]!=' ')
-		{
-			if((line[line.length-1]>='a'&&line[line.length-1]<='z')
-					&&(line[line.length-2]>='0'&&line[line.length-2]<='9')){
-				process.add('*');
-			}
-			process.add(line[line.length-1]);
-		}
-		
-		char[] changed = new char[process.size()];
-		for( int i=0 ; i<process.size() ; i++ )
-		{
-			changed[i] = (char)process.get(i);
-		}
-		return changed;
-	}
-	
-	//½«ÊäÈë±í´ïÊ½´æÈë¶ş²æÊ÷ÖĞ
-	public void toTree( char[] line )
-	{
-		
-		//Ô¤´¦Àí±í´ïÊ½
-		line = preprocess(line);
-			
-		root = null ;
-		int bracketCount = 0 ;
-		
-		//¼ì²éÀ¨ºÅÊıÁ¿ÊÇ·ñÆ¥Åä¡¢ÊÇ·ñÓĞ·Ç·¨×Ö·û
-		for(int i = 0 ; i < line.length ; i++ )
-		{
-			if(line[i]=='(')
-				bracketCount ++ ;
-			else if(line[i]==')')
-			{
-				bracketCount -- ;
-				if(bracketCount<0)
-				{
-					System.out.println("¸ñÊ½´íÎó£¡");
-					illegal = true ;
-					break ;
-				}
-			}
-			else if(line[i]>='0'&&line[i]<='9'||line[i]>='a'&&line[i]<='z'||line[i]=='+'||line[i]=='*')
-				continue ;
-			else
-			{
-				System.out.println("·Ç·¨×Ö·û£º"+line[i]);
-				illegal = true ;
-			}
-		}
-		//À¨ºÅÊıÁ¿²»Æ¥Åä
-		if(bracketCount!=0)
-		{
-			System.out.println("À¨ºÅ²»Æ¥Åä£¡");
-			illegal = true ;
-		}
-		
-		if(!illegal){
-			root = ContributeTree(line);
-		}
+    }   
+    
+    //å°†æ‰€æœ‰å˜é‡å­˜å…¥variableä¸­
+    /**
+     * @param n
+     */
+    private void getVar(final node n)
+     {
+        if(n instanceof Operator)
+         {
+            getVar(n.left);
+            getVar(n.right);
+        }
+        else if(n instanceof Character)
+         {
+            for( Object k : variable )
+             {
+                if(((Character)  n).getContent().equals( (String) k ))
+                 {
+                    return ;
+                }
+            }
+            variable.add( ((Character)  n).getContent() );
+        }
+    }
+    
+    //å±•å¼€å¤šé¡¹å¼é€’å½’å‡½æ•°
+    /**
+     * @param n
+     */
+    private void unfold(final node n) 
+     {
+        if(n instanceof Operator)
+         {   
+            unfold(n.getLeft());
+            unfold(n.getRight());
+            
+            if(((Operator)  n).getContent()  =='*')
+             {   
+                boolean leftIsPlus  = false , rightIsPlus  = false;
+                
+                if(n.getLeft() instanceof Operator && ((Operator) (n.getLeft())).getContent()  =='+')
+                    leftIsPlus  = true ;
+                if(n.getRight() instanceof Operator && ((Operator) n.getRight()).getContent()  =='+')
+                    rightIsPlus  = true ;
+                if(leftIsPlus && rightIsPlus)
+                 {
+                    node ll  = new Operator('*');
+                    node lr  = new Operator('*');
+                    node rl  = new Operator('*');
+                    node rr  = new Operator('*');
+                    ((Operator)  n).set('+');
+                    ll.manageLeft(n.getLeft().getLeft());
+                    ll.manageRight(n.getRight().getLeft());
+                    lr.manageLeft(copy(n.getLeft().getLeft()));
+                    lr.manageRight(n.getRight().getRight());
+                    rl.manageLeft(n.getLeft().getRight());
+                    rl.manageRight(copy(n.getRight().getLeft()));
+                    rr.manageLeft(copy(n.getLeft().getRight()));
+                    rr.manageRight(copy(n.getRight().getRight()));
+                    n.left.manageLeft(ll);
+                    n.left.manageRight(lr);
+                    n.right.manageLeft(rl);
+                    n.right.manageRight(rr);
+                }
+                else if(leftIsPlus && !rightIsPlus)
+                 {
+                    node right  = new Operator('*');
+                    right.manageLeft(n.getLeft().getRight());
+                    right.manageRight(n.getRight());
+                    ((Operator)  n).set('+');
+                    ((Operator)  n.getLeft()).set('*');
+                    n.getLeft().manageRight(copy(n.right));
+                    n.manageRight(right);
+                }
+                else if(!leftIsPlus && rightIsPlus)
+                 {
+                    node left  = new Operator('*');
+                    left.manageRight(n.getRight().getLeft());
+                    left.manageLeft(n.getLeft());
+                    ((Operator)  n).set('+');
+                    ((Operator)  n.getRight()).set('*');
+                    n.getRight().manageLeft(copy(n.left));
+                    n.manageLeft(left);
+                }               
+            }
+            
+            unfold(n.getLeft());
+            unfold(n.getRight());
+    }
+        
+        }
+    
+    //å°†å¶å­ç»“ç‚¹æ•´ç†å¥½æ”¾å…¥å•é¡¹å¼æ ‘targetä¸­
+    /**
+     * @param n
+     * @param target
+     */
+    private void travelLeaf(final node n,Operator target)
+     {
+        //åç»­éå†ï¼Œè‹¥ä¸æ˜¯å¶å­ç»“ç‚¹åˆ™å¾€ä¸‹éå†
+        if(n.left !=null && n.right !=null)
+         {
+            travelLeaf(n.left,target);
+            travelLeaf(n.right,target);
+        }
+        //å¦‚æœæ˜¯å¶å­ç»“ç‚¹
+        else if(n.left  ==null && n.right  ==null)
+         {
+            //æ•°å­—åˆ™å°†å½“å‰ç³»æ•°ä¹˜ä¸Šç»“ç‚¹æ•°å­—å†å­˜èµ·æ¥
+            if(n instanceof Digit)
+             {
+                int result ;
+                result  = ((Digit) (target.son.get(0))).getContent() *((Digit)  n).getContent();
+                ((Digit) (target.son.get(0))).set( result );
+            }
+            //è‹¥ä¸ºå­—æ¯åˆ™æ‰¾åˆ°æ‰¾åˆ°è¿™ä¸ªå­—æ¯å°†å…¶æŒ‡æ•°åŠ ä¸€
+            else if(n instanceof Character)
+             {   
+                for(node k : ((Operator) target).son )
+                 {
+                    if(k instanceof Character)
+                     {
+                        if(((Character)  k).getContent().equals(((Character) n).getContent()))
+                         {
+                            ((Character)  k).setIndex(((Character)  k).getIndex() + 1);
+                        }
+                    }
+                    else if(k instanceof Digit)
+                        continue;
+                    
+                }
+            }
+        }   
+    }
+    
+    //å°†äºŒå‰æ ‘è¡¨è¾¾å¼è½¬åŒ–ä¸ºæ ‘è¡¨è¾¾å¼
+    /**
+     * @param n
+     * @return *
+     */
+    private node settle(final node n)
+     {
+        //åˆå§‹åŒ–ä¹˜å·ç»“ç‚¹
+        Operator sub  = new Operator('*');
+        sub.addSon(new Digit(1));
+        
+        //åˆå§‹åŒ–ä¹˜å·ç»“ç‚¹å­èŠ‚ç‚¹
+        for( Object k : variable )
+         {
+            node leaf  = new Character((String) k);
+            ((Character) leaf).setIndex(0);
+            sub.addSon(leaf);
+        }
+        
+        //æ•´ç†ä¹˜å·ç»“ç‚¹
+        travelLeaf(n,sub);
+        
+        return sub;
+    }
+    
+    //å°†å¤šé¡¹å¼åˆå¹¶å¹¶ä¸”å­˜å…¥savedPolyä¸­
+    /**
+     * @param n
+     */
+    private void clearUp(final node n)
+     {   
+        if(n instanceof Operator && ((Operator)  n).getContent()  =='+')
+         {
+            clearUp(n.left);
+            clearUp(n.right);
+        }
+        else if(n instanceof Data || ( n instanceof Operator && ((Operator)  n).getContent()  =='*'))
+         {
+            node subnode  = settle(n);
+            ((Operator) savedPoly).addSon(subnode);
+        }
+    }
 
-	}	
-	
-	//½«ËùÓĞ±äÁ¿´æÈëvariableÖĞ
-	private void getVar(node n)
-	{
-		if(n instanceof Operator)
-		{
-			getVar(n.left);
-			getVar(n.right);
-		}
-		else if(n instanceof Character)
-		{
-			for( Object k : variable )
-			{
-				if(((Character) n).getContent().equals( (String)k ))
-				{
-					return ;
-				}
-			}
-			variable.add( ((Character) n).getContent() );
-		}
-	}
-	
-	//Õ¹¿ª¶àÏîÊ½µİ¹éº¯Êı
-	private void unfold(node n) 
-	{
-		if(n instanceof Operator)
-		{	
-			unfold(n.getLeft());
-			unfold(n.getRight());
-			
-			if(((Operator)n).getContent()=='*')
-			{	
-				boolean leftIsPlus = false , rightIsPlus = false;
-				
-				if(n.getLeft() instanceof Operator&&((Operator)(n.getLeft())).getContent()=='+')
-					leftIsPlus = true ;
-				if(n.getRight() instanceof Operator&&((Operator)n.getRight()).getContent()=='+')
-					rightIsPlus = true ;
-				if(leftIsPlus&&rightIsPlus)
-				{
-					node ll = new Operator('*');
-					node lr = new Operator('*');
-					node rl = new Operator('*');
-					node rr = new Operator('*');
-					((Operator) n).set('+');
-					ll.manageLeft(n.getLeft().getLeft());
-					ll.manageRight(n.getRight().getLeft());
-					lr.manageLeft(copy(n.getLeft().getLeft()));
-					lr.manageRight(n.getRight().getRight());
-					rl.manageLeft(n.getLeft().getRight());
-					rl.manageRight(copy(n.getRight().getLeft()));
-					rr.manageLeft(copy(n.getLeft().getRight()));
-					rr.manageRight(copy(n.getRight().getRight()));
-					n.left.manageLeft(ll);
-					n.left.manageRight(lr);
-					n.right.manageLeft(rl);
-					n.right.manageRight(rr);
-				}
-				else if(leftIsPlus&&!rightIsPlus)
-				{
-					node right = new Operator('*');
-					right.manageLeft(n.getLeft().getRight());
-					right.manageRight(n.getRight());
-					((Operator) n).set('+');
-					((Operator) n.getLeft()).set('*');
-					n.getLeft().manageRight(copy(n.right));
-					n.manageRight(right);
-				}
-				else if(!leftIsPlus&&rightIsPlus)
-				{
-					node left = new Operator('*');
-					left.manageRight(n.getRight().getLeft());
-					left.manageLeft(n.getLeft());
-					((Operator) n).set('+');
-					((Operator) n.getRight()).set('*');
-					n.getRight().manageLeft(copy(n.left));
-					n.manageLeft(left);
-				}				
-			}
-			
-			unfold(n.getLeft());
-			unfold(n.getRight());
-	}
-		
-		}
-	
-	//½«Ò¶×Ó½áµãÕûÀíºÃ·ÅÈëµ¥ÏîÊ½Ê÷targetÖĞ
-	private void travelLeaf(node n,Operator target)
-	{
-		//ºóĞø±éÀú£¬Èô²»ÊÇÒ¶×Ó½áµãÔòÍùÏÂ±éÀú
-		if(n.left!=null&&n.right!=null)
-		{
-			travelLeaf(n.left,target);
-			travelLeaf(n.right,target);
-		}
-		//Èç¹ûÊÇÒ¶×Ó½áµã
-		else if(n.left==null&&n.right==null)
-		{
-			//Êı×ÖÔò½«µ±Ç°ÏµÊı³ËÉÏ½áµãÊı×ÖÔÙ´æÆğÀ´
-			if(n instanceof Digit)
-			{
-				int result ;
-				result = ((Digit)(target.son.get(0))).getContent()*((Digit) n).getContent();
-				((Digit)(target.son.get(0))).set( result );
-			}
-			//ÈôÎª×ÖÄ¸ÔòÕÒµ½ÕÒµ½Õâ¸ö×ÖÄ¸½«ÆäÖ¸Êı¼ÓÒ»
-			else if(n instanceof Character)
-			{	
-				for(node k : ((Operator)target).son )
-				{
-					if(k instanceof Character)
-					{
-						if(((Character) k).getContent().equals(((Character)n).getContent()))
-						{
-							((Character) k).setIndex(((Character) k).getIndex()+1);
-						}
-					}
-					else if(k instanceof Digit)
-						continue;
-					
-				}
-			}
-		}	
-	}
-	
-	//½«¶ş²æÊ÷±í´ïÊ½×ª»¯ÎªÊ÷±í´ïÊ½
-	private node settle(node n)
-	{
-		//³õÊ¼»¯³ËºÅ½áµã
-		Operator sub = new Operator('*');
-		sub.addSon(new Digit(1));
-		
-		//³õÊ¼»¯³ËºÅ½áµã×Ó½Úµã
-		for( Object k : variable )
-		{
-			node leaf = new Character((String)k);
-			((Character)leaf).setIndex(0);
-			sub.addSon(leaf);
-		}
-		
-		//ÕûÀí³ËºÅ½áµã
-		travelLeaf(n,sub);
-		
-		return sub;
-	}
-	
-	//½«¶àÏîÊ½ºÏ²¢²¢ÇÒ´æÈësavedPolyÖĞ
-	private void clearUp(node n)
-	{	
-		if(n instanceof Operator&&((Operator) n).getContent()=='+')
-		{
-			clearUp(n.left);
-			clearUp(n.right);
-		}
-		else if(n instanceof Data||( n instanceof Operator&&((Operator) n).getContent()=='*'))
-		{
-			node subnode = settle(n);
-			((Operator)savedPoly).addSon(subnode);
-		}
-	}
+    //æ¯”è¾ƒä¸¤ä¸ªå•é¡¹å¼æ˜¯å¦ä¸ºåŒç±»é¡¹
+    /**
+     * @param a
+     * @param b
+     * @return *
+     */
+    private boolean compareMono(Operator a,Operator b)
+     {
+        boolean isSame  = true;
+        for(int i  = 1 ; i < a.son.size() ; i ++  )
+         {
+            if(((Character) (a.son.get(i))).getIndex()  ==((Character) (b.son.get(i))).getIndex())
+                continue;
+            else
+             {
+                isSame  = false;
+                break;
+            }
+        }
+        return isSame ;
+    }
+    
+    //åˆå¹¶åŒç±»å‹
+    /**
+     * 
+     */
+    private void combine()
+     {
+        //æ¯”è¾ƒä¸¤ä¸ªå•é¡¹å¼æ˜¯å¦ä¸ºåŒç±»é¡¹
+        for(int i  = 0 ; i < savedPoly.son.size() ; i ++  )
+         {
+            for(int j  = i + 1 ; j < savedPoly.son.size() ; j ++  )
+             {
+                if(compareMono((Operator) savedPoly.son.get(i),(Operator) savedPoly.son.get(j)))
+                 {
+                    Digit temp = ( (Digit) ( (Operator) savedPoly.son.get(i)).son.get(0) );
+                    int factor  = temp.getContent();
+                    factor  += temp.getContent();
+                    temp.set(factor);
+                    savedPoly.son.remove(j);
+                    j --;
+                }
+            }
+        }
+    }
+    
+    //å°†è¡¨è¾¾å¼åŒ–ç®€å­˜å…¥æ ‘ä¸­
+    /**
+     * @param input
+     */
+    private void setSave(final char[] input) 
+     {
+        
+        //åˆå§‹åŒ–ä¸¤æ£µæ ‘
+        root  = null;
+        savedPoly  = new Operator('+');
+        variable.clear();
+        
+        //å°†è¡¨è¾¾å¼å­˜å…¥æ ‘ä¸­
+        toTree(input);
 
-	//±È½ÏÁ½¸öµ¥ÏîÊ½ÊÇ·ñÎªÍ¬ÀàÏî
-	private boolean compareMono(Operator a,Operator b)
-	{
-		boolean isSame = true;
-		for(int i = 1 ; i < a.son.size() ; i++ )
-		{
-			if(((Character)(a.son.get(i))).getIndex()==((Character)(b.son.get(i))).getIndex())
-				continue;
-			else
-			{
-				isSame = false;
-				break;
-			}
-		}
-		return isSame ;
-	}
-	
-	//ºÏ²¢Í¬ÀàĞÍ
-	private void combine()
-	{
-		//±È½ÏÁ½¸öµ¥ÏîÊ½ÊÇ·ñÎªÍ¬ÀàÏî
-		for(int i = 0 ; i < savedPoly.son.size() ; i++ )
-		{
-			for(int j = i+1 ; j < savedPoly.son.size() ; j++ )
-			{
-				if(compareMono((Operator)savedPoly.son.get(i),(Operator)savedPoly.son.get(j)))
-				{
-					int factor = ((Digit)((Operator)savedPoly.son.get(i)).son.get(0)).getContent();
-					factor += ((Digit)((Operator)savedPoly.son.get(j)).son.get(0)).getContent();
-					((Digit)((Operator)savedPoly.son.get(i)).son.get(0)).set(factor);;
-					savedPoly.son.remove(j);
-					j--;
-				}
-			}
-		}
-	}
-	
-	//½«±í´ïÊ½»¯¼ò´æÈëÊ÷ÖĞ
-	private void Save(char[] input) 
-	{
-		
-		//³õÊ¼»¯Á½¿ÃÊ÷
-		root = null;
-		savedPoly = new Operator('+');
-		variable.clear();
-		
-		//½«±í´ïÊ½´æÈëÊ÷ÖĞ
-		toTree(input);
+        if(!illegal)
+         {
+            //å­˜å‚¨æ‰€æœ‰å˜é‡
+            getVar(root);
+            
+            //æ ¹æ®æ ‘å°†è¡¨è¾¾å¼å…¨éƒ¨å±•å¼€ï¼ˆå»æ‹¬å·ï¼‰
+            unfold(root);
+        
+            //åŒ–ç®€å¤šé¡¹å¼
+            clearUp(root);
+                        
+            //åˆå¹¶åŒç±»é¡¹
+            combine();
+            
+            print(savedPoly);
+        }
+    }
+    //
 
-		if(!illegal)
-		{
-			//´æ´¢ËùÓĞ±äÁ¿
-			getVar(root);
-			
-			//¸ù¾İÊ÷½«±í´ïÊ½È«²¿Õ¹¿ª£¨È¥À¨ºÅ£©
-			unfold(root);
-		
-			//»¯¼ò¶àÏîÊ½
-			clearUp(root);
-						
-			//ºÏ²¢Í¬ÀàÏî
-			combine();
-			
-			print(savedPoly);
-		}
-	}
-	//
+    
+    //åŒ–ç®€è¡¨è¾¾å¼æŒ‡ä»¤
+    /**
+     * @param cmd
+     */
+    public void simplify(String cmd)
+     {
+        ArrayList<String >  input  = new ArrayList<String > ();
+        HashMap<Integer,Integer >  pair  = new HashMap<Integer,Integer > ();
+        String[] cut  = cmd.split(" ");
+        boolean exist  = false;
+        
+        //å°†è¾“å…¥å­—ç¬¦ä¸²ä¸­çš„å˜é‡ä¸å…¶å¯¹åº”å€¼å­˜åˆ°å“ˆå¸Œè¡¨ä¸­
+        for(int i =0 ; i < cut.length ; i ++  )
+         {
+            exist  = false;
+            if(!cut[i].equals(""))
+             {
+                String[] divide  = cut[i].split(" ="); 
+                if(divide.length !=2)
+                 {
+                    illegal  = true;
+                    return;
+                }
+                else
+                 {
+                    int value  = 0;
+                    char[] data  = divide[1].toCharArray();
+                    for(int j  = 0 ; j < data.length ; j ++ )
+                     {
+                        if(data[j] >='0' && data[j] <= '9')
+                         {
+                            value *= TEN;
+                            value  += data[j] -'0';
+                        }
+                        else
+                         {
+                            illegal  = true;
+                            return;
+                        }
+                    }
+                    
+                    //åˆ¤æ–­è¯¥å˜é‡æ˜¯å¦å­˜åœ¨
+                    for(String k : variable)
+                     {
+                        if(k.equals(divide[0]))
+                         {
+                            exist  = true;
+                            input.add(k);
+                            pair.put(variable.indexOf(k)  + 1, value);
+                            break;
+                        }
+                    }
+                    if(!exist)
+                     {
+                        System.out.println("å˜é‡" + divide[0] + "ä¸å­˜åœ¨ï¼");
+                    }
+                }
+            }
+        }
+        
+        //å°†å€¼èµ‹ç»™æ¯ä¸ªå•é¡¹å¼
+        for( node n : savedPoly.son )
+         {
+            int factor  = ((Digit) (((Operator) n).son.get(0))).getContent();
+            for( Integer k : pair.keySet() )
+             {
+                Character point  = (Character) ((Operator) n).son.get(k);
+                for( int i = 0; i < point.getIndex() ; i++ )
+                 {
+                    factor *= (int) pair.get(k);
+                }
+                ((Digit) ((Operator) n).son.get(0)).set(factor);
+            }
+            //å¦‚æœè¯¥é¡¹å€¼ä¸º0ï¼Œåˆ™ç§»é™¤
+            if(factor  ==0)
+             {
+                savedPoly.son.remove(n);
+            }
+            //ç§»é™¤èµ‹å€¼çš„å˜é‡
+            else
+             {
+                for(String k : input)
+                 {
+                    for(node q : ((Operator) n).son)
+                     {
+                        if(q instanceof Character && k.equals(((Character)  q).getContent()))
+                         {
+                            ((Operator) n).son.remove(q);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        //ç§»é™¤å˜é‡è¡¨ä¸­èµ‹å€¼çš„å˜é‡
+        for( String k : input )
+         {
+            for( String p : variable )
+             {
+                if(k.equals(p))
+                 {
+                    variable.remove(p);
+                    break;
+                }
+            }
+        }
+        
+        combine();
+        print(savedPoly);
+        
+    }
+    //
+    
+    private int myGetContent(node n) {
+        return ((Digit) (((Operator) n).son.get(0))).getContent();
+    }
+    //æ±‚å¯¼æŒ‡ä»¤
+    /**
+     * @param cmd
+     */
+    public void derivation(String cmd)
+     {
+        int j  = 0 , pos  =0;
+        char[] var  = cmd.toCharArray(); 
+        for( int i  = 0 ; i < var.length ; i ++ ,j ++  )
+         {
+            if(j > i && var[i] !=' ')
+             {
+                illegal  = true;
+                break;
+            }
+            else if(var[i]  ==' ')
+                continue;
+            else
+             {
+                j  = i;
+                for( j  = i ; j < var.length ; j ++  )
+                 {
+                    if(var[j]  ==' ')
+                        break;
+                }
+                String cut  = new String(var).substring(i, j);
+                illegal  = true;
+                for(String k:variable)
+                 {
+                    if(!(k.equals(cut)))
+                        continue;
+                    else
+                     {
+                        pos  = variable.indexOf(k);
+                        pos  ++ ;
+                        illegal  = false;
+                        break;
+                    }
+                }
+                if(!illegal) {
+                    break;
+                }
+            }
+        }
+        
+        //å°†å€¼èµ‹ç»™æ¯ä¸ªå•é¡¹å¼
+        if(!illegal)
+         {
+            for( int i =0 ; i < savedPoly.son.size() ; i ++  )
+             {
+                node n  = savedPoly.son.get(i);
+                int factor  = myGetContent(n);
+                int index  = ((Character) (((Operator) n).son.get(pos))).getIndex();
+                factor *= index;
+                ((Character) (((Operator) n).son.get(pos))).setIndex(index -1);
+                ((Digit) (((Operator) n).son.get(0))).set(factor);
+                    
+                //å¦‚æœè¯¥é¡¹å€¼ä¸º0ï¼Œåˆ™ç§»é™¤
+                if(factor  ==0)
+                 {
+                    savedPoly.son.remove(n);
+                    i --;
+                }
+                //å¦åˆ™ç§»é™¤èµ‹å€¼çš„å˜é‡
+                else
+                 {
+                    ((Operator) n).son.remove(pos);
+                }
+                
+            }   
+            combine();
+            print(savedPoly);
+        }
+        illegal  = false;
+        
+    }
+    //
 
-	
-	//»¯¼ò±í´ïÊ½Ö¸Áî
-	public void simplify(String cmd)
-	{
-		ArrayList<String> input = new ArrayList<String>();
-		HashMap<Integer,Integer> pair = new HashMap<Integer,Integer>();
-		String[] cut = cmd.split(" ");
-		boolean exist = false;
-		
-		//½«ÊäÈë×Ö·û´®ÖĞµÄ±äÁ¿ÓëÆä¶ÔÓ¦Öµ´æµ½¹şÏ£±íÖĞ
-		for(int i=0 ; i < cut.length ; i++ )
-		{
-			exist = false;
-			if(!cut[i].equals(""))
-			{
-				String[] divide = cut[i].split("="); 
-				if(divide.length!=2)
-				{
-					illegal = true;
-					return;
-				}
-				else
-				{
-					int value = 0;
-					char[] data = divide[1].toCharArray();
-					for(int j = 0 ; j < data.length ; j++)
-					{
-						if(data[j]>='0'&&data[j]<='9')
-						{
-							value *= 10;
-							value += data[j]-'0';
-						}
-						else
-						{
-							illegal = true;
-							return;
-						}
-					}
-					
-					//ÅĞ¶Ï¸Ã±äÁ¿ÊÇ·ñ´æÔÚ
-					for(String k : variable)
-					{
-						if(k.equals(divide[0]))
-						{
-							exist = true;
-							input.add(k);
-							pair.put(variable.indexOf(k)+1, value);
-							break;
-						}
-					}
-					if(!exist)
-					{
-						System.out.println("±äÁ¿"+divide[0]+"²»´æÔÚ£¡");
-					}
-				}
-			}
-		}
-		
-		//½«Öµ¸³¸øÃ¿¸öµ¥ÏîÊ½
-		for( node n : savedPoly.son )
-		{
-			int factor = ((Digit)(((Operator)n).son.get(0))).getContent();
-			for( Integer k : pair.keySet() )
-			{
-				Character point = (Character)((Operator)n).son.get(k);
-				for( int i = 0 ; i < point.getIndex() ; i++ )
-				{
-					factor *= (int)pair.get(k);
-				}
-				((Digit)((Operator)n).son.get(0)).set(factor);
-			}
-			//Èç¹û¸ÃÏîÖµÎª0£¬ÔòÒÆ³ı
-			if(factor==0)
-			{
-				savedPoly.son.remove(n);
-			}
-			//ÒÆ³ı¸³ÖµµÄ±äÁ¿
-			else
-			{
-				for(String k : input)
-				{
-					for(node q : ((Operator)n).son)
-					{
-						if(q instanceof Character&&k.equals(((Character) q).getContent()))
-						{
-							((Operator)n).son.remove(q);
-							break;
-						}
-					}
-				}
-			}
-		}
-		
-		//ÒÆ³ı±äÁ¿±íÖĞ¸³ÖµµÄ±äÁ¿
-		for( String k : input )
-		{
-			for( String p : variable )
-			{
-				if(k.equals(p))
-				{
-					variable.remove(p);
-					break;
-				}
-			}
-		}
-		
-		combine();
-		print(savedPoly);
-		
-	}
-	//
-	
-	
-	//Çóµ¼Ö¸Áî
-	public void derivation(String cmd)
-	{
-		int j = 0 , pos =0;
-		char[] var = cmd.toCharArray(); 
-		for( int i = 0 ; i < var.length ; i++,j++ )
-		{
-			if(j>i&&var[i]!=' ')
-			{
-				illegal = true;
-				break;
-			}
-			else if(var[i]==' ')
-				continue;
-			else
-			{
-				j = i;
-				for( j = i ; j < var.length ; j++ )
-				{
-					if(var[j]==' ')
-						break;
-				}
-				String cut = new String(var).substring(i, j);
-				illegal = true;
-				for(String k:variable)
-				{
-					if(!(k.equals(cut)))
-						continue;
-					else
-					{
-						pos = variable.indexOf(k);
-						pos ++;
-						illegal = false;
-						break;
-					}
-				}
-				if(!illegal){
-					break;
-				}
-			}
-		}
-		
-		//½«Öµ¸³¸øÃ¿¸öµ¥ÏîÊ½
-		if(!illegal)
-		{
-			for( int i=0 ; i < savedPoly.son.size() ; i++ )
-			{
-				node n = savedPoly.son.get(i);
-				int factor = ((Digit)(((Operator)n).son.get(0))).getContent();
-				int index = ((Character)(((Operator)n).son.get(pos))).getIndex();
-				factor *= index;
-				((Character)(((Operator)n).son.get(pos))).setIndex(index-1);
-				((Digit)(((Operator)n).son.get(0))).set(factor);
-					
-				//Èç¹û¸ÃÏîÖµÎª0£¬ÔòÒÆ³ı
-				if(factor==0)
-				{
-					savedPoly.son.remove(n);
-					i--;
-				}
-				//·ñÔòÒÆ³ı¸³ÖµµÄ±äÁ¿
-				else
-				{
-					((Operator)n).son.remove(pos);
-				}
-				
-			}	
-			combine();
-			print(savedPoly);
-		}
-		illegal = false;
-		
-	}
-	//
+    
+    //è®¡ç®—ä¸»æ–¹æ³•
+    /**
+     * 
+     */
+    public void calculate()
+     {
+        
+        @SuppressWarnings("resource")
+        Scanner s  = new Scanner(System.in);
+        
+        while(true)
+         {
+            showPrompt();
+            String line  = s.nextLine();
+            line  = line.toLowerCase();
+            char[] input  = line.toCharArray();
+            
+            //æœ‰å¾…ç”¨handleræ ¼å¼åŒ–ä»£ç 
+            if(input[0] !='!')
+             {
+                setSave(input);
+            }
+            else
+             {
+                Handler handler  = null;
+                
+                if(line.length() > FOUR && line.subSequence(0, FOUR).equals("!d/d"))
+                    handler  = handlers.get("!d/d");
+                else if(line.length() > FOUR && line.subSequence(0, FIVE).equals("!exit"))
+                    handler  = handlers.get("!exit");
+                else if(line.length() > NINE && line.subSequence(0, NINE).equals("!simplify"))
+                    handler  = handlers.get("!simplify");
+                else
+                    illegal  = true;
+                
+                if(handler !=null)
+                 {
+                    if(handler.isExit())
+                        break;
+                    else if(root !=null)
+                        handler.doCmd(line);
+                    else
+                        System.out.println("æ²¡æœ‰åˆ›å»ºè¡¨è¾¾å¼ï¼");
+                }
+                else
+                 {
+                    System.out.println("Error,illeagal input!");
+                }
+            }
+            
+            if(illegal) {
+                System.out.println("ä¸åˆæ³•è¾“å…¥ï¼");
+            }
 
-	
-	//¼ÆËãÖ÷·½·¨
-	public void calculate()
-	{
-		
-		Scanner s = new Scanner(System.in);
-		
-		while(true)
-		{
-			showPrompt();
-			String line = s.nextLine();
-			line = line.toLowerCase();
-			char[] input = line.toCharArray();
-			
-			//ÓĞ´ıÓÃhandler¸ñÊ½»¯´úÂë
-			if(input[0]!='!')
-			{
-				Save(input);
-			}
-			else
-			{
-				Handler handler = null;
-				
-				if(line.length()>4&&line.subSequence(0, 4).equals("!d/d"))
-					handler = handlers.get("!d/d");
-				else if(line.length()>4&&line.subSequence(0, 5).equals("!exit"))
-					handler = handlers.get("!exit");
-				else if(line.length()>9&&line.subSequence(0, 9).equals("!simplify"))
-					handler = handlers.get("!simplify");
-				else
-					illegal = true;
-				
-				if(handler!=null)
-				{
-					if(handler.isExit())
-						break;
-					else if(root!=null)
-						handler.doCmd(line);
-					else
-						System.out.println("Ã»ÓĞ´´½¨±í´ïÊ½£¡");
-				}
-				else
-				{
-					System.out.println("Error,illeagal input!");
-				}
-			}
-			
-			if(illegal){
-				System.out.println("²»ºÏ·¨ÊäÈë£¡");
-			}
+            illegal  = false ;
+        }
+    }
 
-			illegal = false ;
-		}
-	}
-
-	public static void main(String[] args) {
-		
-		Calculator c = new Calculator();
-	
-		c.calculate();
-		
-		System.out.println("Bye");
-	}
+    /**
+     * @param args
+     */
+    public static void main(String[] args)  {
+        
+        Calculator c  = new Calculator();
+    
+        c.calculate();
+        
+        System.out.println("Bye");
+    }
 
 }
