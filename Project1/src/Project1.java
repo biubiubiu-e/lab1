@@ -11,27 +11,19 @@ public class Project1 {
   /**
    * 用于判断输入字符串类型：化简指令.
    */
-  private static final int ORDERCALCULATE = 1;
+  private static final int ORDERONE = 1;
   /**
    * 用于判断输入字符串类型：求导指令.
    */
-  private static final int ORDERDERI = 2;
+  private static final int ORDERTWO = 2;
   /**
    * 用于判断输入字符串类型：非法指令.
    */
-  private static final int ORDERWRONG = 3;
+  private static final int ORDERTHREE = 3;
   /**
    * 用于判断输入字符串类型：表达式.
    */
-  private static final int ORDEREXPRESSION = 4;
-  /**
-   * 用于判断输入字符串类型：退出.
-   */
-  private static final int ORDEREXIT = 5;
-  /**
-   * 用于记录当前order值.
-   */
-  private static int orderVal;
+  private static final int ORDERFOUR = 4;
   /**
    * 用于判断输入字符串类型：化简指令.
    */
@@ -42,27 +34,23 @@ public class Project1 {
   private static int intEqualTemp;
 
   /**
-   * 判断输入字符串的操作是什么.
-   * 
-   * @param stra 输入字符串
-   * @return 操作种类代码
+   * 用于条件判断相等的变量.
    */
   public int order(final String stra) {
-    int result = -1;
-    if (stra.length() > 1 && stra.substring(0, 1).equals("!")) {
+    int result = 3;
+    if (stra.length() == 0) {
+      result = 3;
+    } else if (stra.substring(0, 1).equals("!")) {
       if (stra.length() >= 4 && stra.substring(1, 4).equals("d/d")) {
         result = 2;
-      } else if (stra.length() >= 5 && stra.substring(1, 5).equals("exit")) {
-        result = 5;
       } else if (stra.length() >= 9 && stra.substring(1, 9).equals("simplify")) {
         result = 1;
+      } else {
+        result = 3;
       }
-    } else if (stra.length() > 0) {
-      result = 4;
     } else {
-      result = 3;
+      result = 4;
     }
-
     return result;
   }
 
@@ -93,6 +81,7 @@ public class Project1 {
         sym[cnt++] = str.charAt(i);// NOPMD
       }
     }
+
     return sym;
   }
 
@@ -101,12 +90,20 @@ public class Project1 {
    */
   public void calculate(final String str, final String ord) { // NOPMD by liuyx on 15-10-11 下午9:15
     final String[] data = ord.substring(10).split("[=]|[ ]");
+
     String[] singleExp = str.split("[+]|[-]");
+    /*
+     * for (int i = 0;i < single_exp.length;i++){ for (int j = 0;j < data.length;j += 2)
+     * single_exp[i] = single_exp[i].replaceAll(data[j], data[j+1]); }
+     */
 
     final char[] symbol = getSym(str);
 
     if (symbol.length != singleExp.length) {
       System.arraycopy(singleExp, 1, singleExp, 0, singleExp.length - 1);
+      // for (int i = 0; i < singleExp.length - 1; i++) {
+      // singleExp[i] = singleExp[i + 1];
+      // }
     }
 
     intEqualTemp = 1;
@@ -151,7 +148,11 @@ public class Project1 {
       singleExp[i] = sing;
     }
 
-    StringBuffer finalstr = new StringBuffer();
+    /*
+     * for (int i = 0;i < single_exp_num;i++) System.out.println(single_exp[i]);
+     */
+
+    String finalstr = "";
     float sum = 0;
     for (int i = 0; i < singleExpNum; i++) {
       try {
@@ -163,17 +164,17 @@ public class Project1 {
           sum -= tmp;
         }
       } catch (NumberFormatException exception) {
-        finalstr.append(symbol[i] + singleExp[i]);
+        finalstr += symbol[i] + singleExp[i];
       }
     }
     intEqualTemp = 0;
     if (sum != intEqualTemp) {
-      finalstr.append(sum > 0 ? "+" + Float.toString(sum) : Float.toString(sum));
+      finalstr += sum > 0 ? "+" + Float.toString(sum) : Float.toString(sum);
     }
 
     charEqualTemp = '+';
     if (finalstr.charAt(0) == charEqualTemp) {
-      finalstr.deleteCharAt(0);
+      finalstr = finalstr.substring(1);
     }
 
     System.out.println(finalstr);
@@ -254,7 +255,7 @@ public class Project1 {
       othervar.clear();
     }
     charEqualTemp = '+';
-    StringBuffer finalstr = new StringBuffer();
+    String finalstr = "";
     float sum = 0;
     for (int i = 0; i < singleExpNum; i++) {
       if (!singleExp[i].equals("0")) {
@@ -267,16 +268,16 @@ public class Project1 {
             sum -= tmp;
           }
         } catch (NumberFormatException exception) {
-          finalstr.append(symbol[i] + singleExp[i]);
+          finalstr += symbol[i] + singleExp[i];
         }
       }
     }
     if (sum != 0) {
-      finalstr.append(sum > 0 ? "+" + Float.toString(sum) : Float.toString(sum));
+      finalstr += sum > 0 ? "+" + Float.toString(sum) : Float.toString(sum);
     }
     charEqualTemp = '+';
     if (finalstr.charAt(0) == charEqualTemp) {
-      finalstr.deleteCharAt(0);
+      finalstr = finalstr.substring(1);
     }
 
     System.out.println(finalstr);
@@ -286,37 +287,35 @@ public class Project1 {
    * 用于检查输入是否有误.
    */
   public boolean check(final String str) {
-    boolean result = true;
     int symNum = 0;
     int expNum = 0;
-
+    boolean result = false;
     String strLower = str.toLowerCase();
     for (int i = 0; i < str.length(); i++) {
-      if (str.charAt(i) == '+' || str.charAt(i) == '-' || str.charAt(i) == '*') {
-        symNum++;
-      } else if (str.charAt(i) >= '0' && str.charAt(i) <= '9'
+      if (str.charAt(i) == '+' || str.charAt(i) == '-' || str.charAt(i) == '*'
+          || str.charAt(i) >= '0' && str.charAt(i) <= '9'
           || strLower.charAt(i) >= 'a' && strLower.charAt(i) <= 'z') {
-        continue;
+        if (str.charAt(i) == '+' || str.charAt(i) == '-' || str.charAt(i) == '*') {
+          symNum++;
+        }
       } else {
         result = false;
-        break;
+      }
+    }
+    charEqualTemp = '-';
+    final String[] str2 = str.split("[+]|[-]|[*]");
+    for (int i = 0; i < str2.length; i++) {
+      if (str2[i] != null && !str2[i].isEmpty()) {
+        expNum++;
+        // System.out.println(sym_num + " " + exp_num);
       }
     }
 
-    if (result) {
-      charEqualTemp = '-';
-      final String[] str2 = str.split("[+]|[-]|[*]");
-      for (int i = 0; i < str2.length; i++) {
-        if (str2[i] != null && !str2[i].isEmpty()) {
-          expNum++;
-        }
-      }
+    if (str.charAt(0) != charEqualTemp) {
 
-      if (str.charAt(0) != charEqualTemp) {
-        result = (symNum + 1 == expNum) ? true : false;
-      } else {
-        result = (symNum == expNum) ? true : false;
-      }
+      result = (symNum + 1 == expNum) ? true : false;
+    } else {
+      result = (symNum == expNum) ? true : false;
     }
     return result;
   }
@@ -330,26 +329,35 @@ public class Project1 {
     final Project1 poly = new Project1();
     final Scanner scan = new Scanner(System.in);
 
+    int strLength = 4;
     while (true) {
-      final String str1 = scan.nextLine();
-      orderVal = poly.order(str1);
 
-      if (orderVal == ORDERCALCULATE) {
-        poly.calculate(str, str1);
-      } else if (orderVal == ORDERDERI) {
-        poly.deri(str, str1);
-      } else if (orderVal == ORDERWRONG) {
-        System.out.println("Wrong order");
-      } else if (orderVal == ORDEREXPRESSION) {
+      final String str1 = scan.nextLine();
+      if (str1.length() >= strLength && str1.equals("exit")) {
+        break;
+      }
+      // 调用order方法
+      if (poly.order(str1) == ORDERFOUR) {
         str = str1.replaceAll("\\s*", "");
+        // 调用check方法
         if (poly.check(str)) {
           System.out.println(str);
         } else {
           System.out.println("wrong expression");
           str = "";
         }
-      } else if (orderVal == ORDEREXIT) {
-        break;
+      } else if (poly.order(str1) == ORDERONE || poly.order(str1) == ORDERTWO) {
+        if (poly.order(str1) == ORDERONE) {
+          // System.out.println(str+" "+str1);
+          // 调用calculate方法
+          poly.calculate(str, str1);
+        } else if (poly.order(str1) == ORDERTWO) {
+          // 调用deri方法
+          poly.deri(str, str1);
+        }
+      } else if (poly.order(str1) == ORDERTHREE) {
+        System.out.println("Wrong order");
+        // sc.close();
       }
     }
     scan.close();
