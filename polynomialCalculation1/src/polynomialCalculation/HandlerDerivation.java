@@ -1,14 +1,27 @@
 package polynomialCalculation;
 
+/**
+ * @author Administrator
+ *
+ */
 public class HandlerDerivation extends Handler {
-
-	public HandlerDerivation(Calculator c) {
+    /**
+     * 
+     */
+    public static final int FOUR = 4;
+	/**
+	 * @param c
+	 */
+	public HandlerDerivation(final Calculator c) {
 		super(c);
 	}
 
+	/* (non-Javadoc)
+	 * @see polynomialCalculation.Handler#doCmd(java.lang.String)
+	 */
 	@Override
-	public void doCmd(String cmd) {
-		c.derivation(cmd.substring(4));
+	public void doCmd(final String cmd) {
+		c.derivation(cmd.substring(FOUR));
 	}
 
 }

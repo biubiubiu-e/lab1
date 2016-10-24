@@ -1,25 +1,59 @@
 package polynomialCalculation;
 
-public class node{	
+/**
+ * @author Administrator
+ *
+ */ 
+public class node {	
 	
+	/**
+	 * 
+	 */ 
 	protected node left;
+	/**
+	 * 
+	 */
 	protected node right;	
 	
+	/**
+	 * 
+	 */
 	public node()
 	{
 		left = null;
 		right = null;
 	}
 
-	public node getLeft(){ return null; }
-	public node getRight(){ return null; }
-	public char[] get(){ return null; }
+	/**
+	 * @return null
+	 */
+	public node getLeft() { 
+	    return null; 
+	}
+	/**
+	 * @return null
+	 */
+	public node getRight() { 
+	    return null; 
+	}
+	/**
+	 * @return null
+	 */
+	public char[] get() { 
+	    return null; 
+	    }
 	
-	public void manageLeft(node n) {
+	/**
+	 * @param n
+	 */
+	public final void manageLeft(final node n) {
 		this.left = n ;
 	}
 	
-	public void manageRight(node n) {
+	/**
+	 * @param n
+	 */
+	public final void manageRight(final node n) {
 		this.right = n ;
 	}
 

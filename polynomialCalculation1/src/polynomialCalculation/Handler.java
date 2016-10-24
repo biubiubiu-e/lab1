@@ -1,15 +1,33 @@
 package polynomialCalculation;
 
+/**
+ * @author Administrator
+ *
+ */
 public class Handler {
 	
+	/**
+	 * 
+	 */
 	protected Calculator c ;
 	
-	protected Handler(Calculator c){
+	/**
+	 * @param c
+	 */
+	protected Handler(final Calculator c) {
 		this.c = c ;
 	}
 	
-	public void doCmd(String cmd){
+	/**
+	 * @param cmd
+	 */
+	public void doCmd(final String cmd) {
 	}
 	
-	public boolean isExit() { return false ;}
+	/**
+	 * @return false
+	 */
+	public boolean isExit() { 
+	    return false ;
+	    }
 }
